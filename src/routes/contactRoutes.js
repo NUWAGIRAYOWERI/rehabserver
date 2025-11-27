@@ -5,10 +5,10 @@ const router = express.Router();
 
 // ✅ Database connection
 const db = await mysql.createConnection({
-  host: "127.0.0.1",
-  user: "root",
-  password: "", // change if needed
-  database: "kiwenda_rehab",
+  host: "bfyiwejxzemcnxk2rmmv-mysql.services.clever-cloud.com",
+  user: "uqv6h3628ejsv5sq",
+  password: "1pL7C5N6GvIPA4P5evYs", // change if needed
+  database: "bfyiwejxzemcnxk2rmmv",
 });
 
 // ✅ POST /contacts → Save contact form data
@@ -36,8 +36,8 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const [rows] = await db.execute(
-  "SELECT contact_id AS id, name, phone, email, message, status, created_at FROM contacts ORDER BY contact_id DESC"
-);
+      "SELECT contact_id AS id, name, phone, email, message, status, created_at FROM contacts ORDER BY contact_id DESC"
+    );
 
     res.status(200).json(rows);
   } catch (error) {
@@ -50,7 +50,9 @@ router.get("/", async (req, res) => {
 router.patch("/:id/read", async (req, res) => {
   try {
     const { id } = req.params;
-    await db.query("UPDATE contacts SET status = 'Read' WHERE contact_id = ?", [id]);
+    await db.query("UPDATE contacts SET status = 'Read' WHERE contact_id = ?", [
+      id,
+    ]);
     res.json({ success: true, message: "Message marked as read." });
   } catch (err) {
     console.error(err);
@@ -83,7 +85,6 @@ router.get("/contacts/archive", async (req, res) => {
   res.json(archived);
 });
 
-
 // Auto archive cron-like behavior on fetch:
 router.get("/contacts", async (req, res) => {
   const now = new Date();
@@ -101,8 +102,5 @@ router.get("/contacts", async (req, res) => {
 
   res.json(messages);
 });
-
-
-
 
 export default router;
