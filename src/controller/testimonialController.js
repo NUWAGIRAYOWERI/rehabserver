@@ -91,8 +91,6 @@
 //   }
 // };
 
-
-
 import db from "../config/db.js";
 import multer from "multer";
 import path from "path";
@@ -145,12 +143,15 @@ export const addTestimonial = async (req, res) => {
 };
 
 // ✅ Get all testimonials
+
 export const getTestimonials = async (req, res) => {
   try {
     const [rows] = await db.query(
       "SELECT * FROM testimonials ORDER BY testimonial_id DESC"
     );
-    res.json(rows);
+
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).send(JSON.stringify(rows));
   } catch (err) {
     console.error("❌ Error fetching testimonials:", err);
     res.status(500).json({ error: "Failed to fetch testimonials" });
