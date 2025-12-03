@@ -24,6 +24,11 @@ const __dirname = path.dirname(__filename);
 // ✅ Middleware: CORS with multiple origins
 const allowedOrigins = [
   "https://rehabbackend-rosy.vercel.app",
+  "https://rehabfrontend.vercel.app",
+  "https://www.kiwendarehabcentre.com",
+  "https://kiwendarehabcentre.com",
+  "https://www.admin.kiwendarehabcentre.com",
+  "https://admin.kiwendarehabcentre.com",
   "http://localhost:3306",
 ];
 app.use(
