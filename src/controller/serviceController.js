@@ -56,7 +56,7 @@
 //     }
 
 //     const [result] = await pool.query(
-//       `INSERT INTO services
+//       `INSERT INTO services 
 //        (name, description, long_description, status, category, icon, image_url, created_at)
 //        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
 //       [name, description, long_description || "", status, category, icon || null, image_filename]
@@ -85,11 +85,11 @@
 //     const image_filename = req.file ? req.file.filename : null;
 
 //     const query = image_filename
-//       ? `UPDATE services
-//          SET name=?, description=?, long_description=?, status=?, category=?, icon=?, image_url=?
+//       ? `UPDATE services 
+//          SET name=?, description=?, long_description=?, status=?, category=?, icon=?, image_url=? 
 //          WHERE service_id=?`
-//       : `UPDATE services
-//          SET name=?, description=?, long_description=?, status=?, category=?, icon=?
+//       : `UPDATE services 
+//          SET name=?, description=?, long_description=?, status=?, category=?, icon=? 
 //          WHERE service_id=?`;
 
 //     const params = image_filename
@@ -124,20 +124,22 @@
 //   }
 // };
 
+
+
 import pool from "../config/db.js";
 import path from "path";
 
 // ✅ Get all services
 export const getAllServices = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT * FROM services ORDER BY created_at DESC"
-    );
+    const [rows] = await pool.query("SELECT * FROM services ORDER BY created_at DESC");
 
     // Prepend full URL for image paths
     const services = rows.map((service) => ({
       ...service,
-      image_url: service.image_url ? `/uploads/services/${service.image_url}` : null,
+      image_url: service.image_url
+        ? `https://rehabserver.onrender.com/uploads/${service.image_url}`
+        : null,
     }));
 
     res.json(services);
@@ -151,10 +153,7 @@ export const getAllServices = async (req, res) => {
 export const getServiceById = async (req, res) => {
   try {
     const { id } = req.params;
-    const [rows] = await pool.query(
-      "SELECT * FROM services WHERE service_id = ?",
-      [id]
-    );
+    const [rows] = await pool.query("SELECT * FROM services WHERE service_id = ?", [id]);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "Service not found" });
@@ -163,7 +162,7 @@ export const getServiceById = async (req, res) => {
     const service = rows[0];
 
     if (service.image_url) {
-      service.image_url = `/uploads/services/${service.image_url}`;
+      service.image_url = `https://rehabserver.onrender.com/uploads/${service.image_url}`;
     }
 
     res.json(service);
@@ -177,9 +176,7 @@ export const getServiceById = async (req, res) => {
 export const getServiceBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const [rows] = await pool.query("SELECT * FROM services WHERE slug = ?", [
-      slug,
-    ]);
+    const [rows] = await pool.query("SELECT * FROM services WHERE slug = ?", [slug]);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "Service not found" });
@@ -188,7 +185,7 @@ export const getServiceBySlug = async (req, res) => {
     const service = rows[0];
 
     if (service.image_url) {
-      service.image_url = `/uploads/services/${service.image_url}`;
+      service.image_url = `https://rehabserver.onrender.com/uploads/${service.image_url}`;
     }
 
     res.json(service);
@@ -201,8 +198,7 @@ export const getServiceBySlug = async (req, res) => {
 // ✅ Create a new service
 export const createService = async (req, res) => {
   try {
-    const { name, description, long_description, status, category, icon } =
-      req.body;
+    const { name, description, long_description, status, category, icon } = req.body;
     const image_filename = req.file ? req.file.filename : null;
 
     if (!name || !description || !status || !category) {
@@ -216,19 +212,12 @@ export const createService = async (req, res) => {
       `INSERT INTO services 
        (name, slug, description, long_description, status, category, icon, image_url, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [
-        name,
-        slug,
-        description,
-        long_description || "",
-        status,
-        category,
-        icon || null,
-        image_filename,
-      ]
+      [name, slug, description, long_description || "", status, category, icon || null, image_filename]
     );
 
-    const image_url = image_filename ? `/uploads/services/${image_filename}` : null;
+    const image_url = image_filename
+      ? `https://rehabserver.onrender.com/uploads/${image_filename}`
+      : null;
 
     res.status(201).json({
       message: "Service created successfully",
@@ -246,8 +235,7 @@ export const createService = async (req, res) => {
 export const updateService = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, long_description, status, category, icon } =
-      req.body;
+    const { name, description, long_description, status, category, icon } = req.body;
     const image_filename = req.file ? req.file.filename : null;
 
     // Update slug based on name
@@ -262,23 +250,13 @@ export const updateService = async (req, res) => {
          WHERE service_id=?`;
 
     const params = image_filename
-      ? [
-          name,
-          slug,
-          description,
-          long_description,
-          status,
-          category,
-          icon,
-          image_filename,
-          id,
-        ]
+      ? [name, slug, description, long_description, status, category, icon, image_filename, id]
       : [name, slug, description, long_description, status, category, icon, id];
 
     await pool.query(query, params);
 
     const image_url = image_filename
-      ? `/uploads/services/${image_filename}`
+      ? `https://rehabserver.onrender.com/uploads/${image_filename}`
       : null;
 
     res.json({
