@@ -137,7 +137,7 @@ export const getAllServices = async (req, res) => {
     // Prepend full URL for image paths
     const services = rows.map((service) => ({
       ...service,
-      image_url: service.image_url ? `/uploads/${service.image_url}` : null,
+      image_url: service.image_url ? `/uploads/services/${service.image_url}` : null,
     }));
 
     res.json(services);
@@ -163,7 +163,7 @@ export const getServiceById = async (req, res) => {
     const service = rows[0];
 
     if (service.image_url) {
-      service.image_url = `/uploads/${service.image_url}`;
+      service.image_url = `/uploads/services/${service.image_url}`;
     }
 
     res.json(service);
@@ -188,7 +188,7 @@ export const getServiceBySlug = async (req, res) => {
     const service = rows[0];
 
     if (service.image_url) {
-      service.image_url = `/uploads/${service.image_url}`;
+      service.image_url = `/uploads/services/${service.image_url}`;
     }
 
     res.json(service);
@@ -228,7 +228,7 @@ export const createService = async (req, res) => {
       ]
     );
 
-    const image_url = image_filename ? `/uploads/${image_filename}` : null;
+    const image_url = image_filename ? `/uploads/services/${image_filename}` : null;
 
     res.status(201).json({
       message: "Service created successfully",
@@ -278,7 +278,7 @@ export const updateService = async (req, res) => {
     await pool.query(query, params);
 
     const image_url = image_filename
-      ? `${req.protocol}://${req.get("host")}/uploads/${image_filename}`
+      ? `/uploads/services/${image_filename}`
       : null;
 
     res.json({
