@@ -123,9 +123,10 @@ export const addTestimonial = async (req, res) => {
       return res.status(400).json({ error: "All fields are required." });
     }
 
-    const photo_url = req.file
-      ? `/uploads/testimonials/${req.file.filename}`
-      : null;
+    const photo_url =  null; 
+    req.file
+      // ? `/uploads/testimonials/${req.file.filename}`
+      // :
 
     const [result] = await db.query(
       "INSERT INTO testimonials (patient_name, message, photo_url, rating, status) VALUES (?, ?, ?, ?, ?)",

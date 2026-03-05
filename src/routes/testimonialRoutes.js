@@ -30,7 +30,7 @@ const router = express.Router();
 
 // ✅ Routes
 router.get("/", getTestimonials);
-router.post("/add", upload.single("photo"), addTestimonial);
+router.post("/add", addTestimonial);
 router.delete("/:id", deleteTestimonial);
 
 export default router;
