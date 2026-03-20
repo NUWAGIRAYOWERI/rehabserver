@@ -98,20 +98,24 @@ import fs from "fs";
 
 // Ensure uploads directory exists
 const uploadDir = path.resolve("uploads/testimonials");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-// Configure multer for saving photos
+// ✅ Multer storage config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
+
   filename: (req, file, cb) => {
     const uniqueName = `${Date.now()}-${file.originalname}`;
     cb(null, uniqueName);
   },
 });
 
+// ✅ Multer (NO limits, NO filters)
 export const upload = multer({ storage });
 
-// ✅ Add a new testimonial
+// ✅ Add testimonial
 export const addTestimonial = async (req, res) => {
   try {
     console.log("🟢 Incoming form data:", req.body);
@@ -120,42 +124,49 @@ export const addTestimonial = async (req, res) => {
     const { patient_name, message, rating, status } = req.body;
 
     if (!patient_name || !message || !rating || !status) {
-      return res.status(400).json({ error: "All fields are required." });
+      return res.status(400).json({
+        error: "All fields are required.",
+      });
     }
 
-    const photo_url =  null; 
-    req.file
-      // ? `/uploads/testimonials/${req.file.filename}`
-      // :
+    // ✅ FIXED (this is the important part)
+    const photo_url = req.file
+      ? `/uploads/testimonials/${req.file.filename}`
+      : null;
 
     const [result] = await db.query(
       "INSERT INTO testimonials (patient_name, message, photo_url, rating, status) VALUES (?, ?, ?, ?, ?)",
-      [patient_name, message, photo_url, rating, status]
+      [patient_name, message, photo_url, rating, status],
     );
 
     res.status(201).json({
       message: "✅ Testimonial saved successfully",
       testimonial_id: result.insertId,
+      photo_url,
     });
   } catch (err) {
     console.error("❌ Error saving testimonial:", err);
-    res.status(500).json({ error: "Failed to save testimonial" });
+
+    res.status(500).json({
+      error: "Failed to save testimonial",
+    });
   }
 };
 
-// ✅ Get all testimonials
-
+// ✅ Get testimonials
 export const getTestimonials = async (req, res) => {
   try {
     const [rows] = await db.query(
-      "SELECT * FROM testimonials ORDER BY testimonial_id DESC"
+      "SELECT * FROM testimonials ORDER BY testimonial_id DESC",
     );
 
-    res.setHeader("Content-Type", "application/json");
-    res.status(200).send(JSON.stringify(rows));
+    res.status(200).json(rows);
   } catch (err) {
     console.error("❌ Error fetching testimonials:", err);
-    res.status(500).json({ error: "Failed to fetch testimonials" });
+
+    res.status(500).json({
+      error: "Failed to fetch testimonials",
+    });
   }
 };
 
@@ -163,25 +174,38 @@ export const getTestimonials = async (req, res) => {
 export const deleteTestimonial = async (req, res) => {
   try {
     const { id } = req.params;
+
     const [rows] = await db.query(
       "SELECT photo_url FROM testimonials WHERE testimonial_id = ?",
-      [id]
+      [id],
     );
 
-    if (rows.length === 0)
-      return res.status(404).json({ error: "Testimonial not found." });
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: "Testimonial not found.",
+      });
+    }
 
-    // Delete image file if exists
+    // delete image file if exists
     const photoUrl = rows[0].photo_url;
+
     if (photoUrl) {
       const filePath = path.resolve(`.${photoUrl}`);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
 
     await db.query("DELETE FROM testimonials WHERE testimonial_id = ?", [id]);
-    res.json({ message: "✅ Testimonial deleted successfully" });
+
+    res.json({
+      message: "✅ Testimonial deleted successfully",
+    });
   } catch (err) {
     console.error("❌ Error deleting testimonial:", err);
-    res.status(500).json({ error: "Failed to delete testimonial." });
+
+    res.status(500).json({
+      error: "Failed to delete testimonial",
+    });
   }
 };

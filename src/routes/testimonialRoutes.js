@@ -17,7 +17,6 @@
 
 // export default router;
 
-
 import express from "express";
 import {
   upload,
@@ -28,9 +27,13 @@ import {
 
 const router = express.Router();
 
-// ✅ Routes
+// ✅ Get all testimonials
 router.get("/", getTestimonials);
-router.post("/add", addTestimonial);
+
+// ✅ Add testimonial WITH image upload
+router.post("/add", upload.single("photo"), addTestimonial);
+
+// ✅ Delete testimonial
 router.delete("/:id", deleteTestimonial);
 
 export default router;
