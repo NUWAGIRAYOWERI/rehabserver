@@ -50,6 +50,9 @@ export const upload = multer({ storage });
 //   }
 // };
 
+// =========================
+// ✅ ADD TESTIMONIAL
+// =========================
 export const addTestimonial = async (req, res) => {
   try {
     console.log("🟢 BODY:", req.body);
@@ -63,16 +66,25 @@ export const addTestimonial = async (req, res) => {
       });
     }
 
-    // ✅ safe file handling
-    let photo_url = null;
+    // ✅ Normalize status (FIX)
+    const normalizedStatus =
+      status?.toLowerCase() === "approved" ? "Approved" : "Pending";
 
+    // ✅ File handling
+    let photo_url = null;
     if (req.file) {
       photo_url = `/uploads/testimonials/${req.file.filename}`;
     }
 
     const [result] = await db.query(
       "INSERT INTO testimonials (patient_name, message, photo_url, rating, status) VALUES (?, ?, ?, ?, ?)",
-      [patient_name, message, photo_url, rating, status],
+      [
+        patient_name,
+        message,
+        photo_url,
+        parseInt(rating, 10),
+        normalizedStatus,
+      ],
     );
 
     res.status(201).json({
@@ -84,11 +96,10 @@ export const addTestimonial = async (req, res) => {
     console.error("❌ FULL ERROR:", err);
 
     res.status(500).json({
-      error: err.message, // 👈 IMPORTANT (so you SEE real error)
+      error: err.message,
     });
   }
 };
-
 // Get all testimonials
 export const getTestimonials = async (req, res) => {
   try {
