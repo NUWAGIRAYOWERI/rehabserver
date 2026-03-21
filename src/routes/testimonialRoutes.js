@@ -16,24 +16,21 @@
 // router.delete("/:id", deleteTestimonial);
 
 // export default router;
-
 import express from "express";
 import {
   upload,
   getTestimonials,
   addTestimonial,
   deleteTestimonial,
+  updateTestimonial,
 } from "../controller/testimonialController.js";
 
 const router = express.Router();
 
-// ✅ Get all testimonials
+// Routes
 router.get("/", getTestimonials);
-
-// ✅ Add testimonial WITH image upload
 router.post("/add", upload.single("photo"), addTestimonial);
-
-// ✅ Delete testimonial
+router.put("/:id", upload.single("photo"), updateTestimonial);
 router.delete("/:id", deleteTestimonial);
 
 export default router;

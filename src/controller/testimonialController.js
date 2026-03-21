@@ -1,96 +1,3 @@
-// import db from "../config/db.js";
-// import multer from "multer";
-// import path from "path";
-// import fs from "fs";
-
-// // --- File Upload Configuration ---
-// const uploadDir = path.resolve("uploads/testimonials");
-// if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => cb(null, uploadDir),
-//   filename: (req, file, cb) => {
-//     const uniqueName = `${Date.now()}-${file.originalname}`;
-//     cb(null, uniqueName);
-//   },
-// });
-
-// export const upload = multer({ storage });
-
-// // --- Add New Testimonial ---
-// export const addTestimonial = async (req, res) => {
-//   try {
-//     const { patient_name, message, rating, status } = req.body;
-
-//     // Construct absolute URL for image
-//     const serverUrl = `${req.protocol}://${req.get("host")}`;
-//     const photo_url = req.file
-//       ? `${serverUrl}/uploads/testimonials/${req.file.filename}`
-//       : null;
-
-//     if (!patient_name || !message || !rating || !status) {
-//       return res
-//         .status(400)
-//         .json({ error: "All required fields must be provided." });
-//     }
-
-//     const [result] = await db.query(
-//       "INSERT INTO testimonials (patient_name, message, photo_url, rating, status) VALUES (?, ?, ?, ?, ?)",
-//       [patient_name, message, photo_url, rating, status]
-//     );
-
-//     res
-//       .status(201)
-//       .json({
-//         message: "Testimonial added successfully!",
-//         testimonial_id: result.insertId,
-//       });
-//   } catch (err) {
-//     console.error("Error adding testimonial:", err);
-//     res.status(500).json({ error: "Failed to add testimonial." });
-//   }
-// };
-
-// // --- Get All Testimonials ---
-// export const getTestimonials = async (req, res) => {
-//   try {
-//     const [rows] = await db.query(
-//       "SELECT * FROM testimonials ORDER BY testimonial_id DESC"
-//     );
-//     res.json(rows);
-//   } catch (err) {
-//     console.error("Error fetching testimonials:", err);
-//     res.status(500).json({ error: "Failed to fetch testimonials." });
-//   }
-// };
-
-// // --- Delete Testimonial ---
-// export const deleteTestimonial = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const [rows] = await db.query(
-//       "SELECT photo_url FROM testimonials WHERE testimonial_id = ?",
-//       [id]
-//     );
-//     if (rows.length === 0)
-//       return res.status(404).json({ error: "Testimonial not found." });
-
-//     // Extract file path from full URL
-//     const photoUrl = rows[0].photo_url;
-//     if (photoUrl) {
-//       const relativePath = photoUrl.replace(`${req.protocol}://${req.get("host")}`, ".");
-//       const photoPath = path.resolve(relativePath);
-//       if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
-//     }
-
-//     await db.query("DELETE FROM testimonials WHERE testimonial_id = ?", [id]);
-//     res.json({ message: "Testimonial deleted successfully." });
-//   } catch (err) {
-//     console.error("Error deleting testimonial:", err);
-//     res.status(500).json({ error: "Failed to delete testimonial." });
-//   }
-// };
-
 import db from "../config/db.js";
 import multer from "multer";
 import path from "path";
@@ -102,110 +9,120 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// ✅ Multer storage config
+// Multer storage config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
-
   filename: (req, file, cb) => {
     const uniqueName = `${Date.now()}-${file.originalname}`;
     cb(null, uniqueName);
   },
 });
 
-// ✅ Multer (NO limits, NO filters)
+// Multer upload instance
 export const upload = multer({ storage });
 
-// ✅ Add testimonial
+// Add testimonial
 export const addTestimonial = async (req, res) => {
   try {
-    console.log("🟢 Incoming form data:", req.body);
-    console.log("🟢 Uploaded file:", req.file);
-
     const { patient_name, message, rating, status } = req.body;
 
     if (!patient_name || !message || !rating || !status) {
-      return res.status(400).json({
-        error: "All fields are required.",
-      });
+      return res.status(400).json({ error: "All fields are required." });
     }
 
-    // ✅ FIXED (this is the important part)
     const photo_url = req.file
       ? `/uploads/testimonials/${req.file.filename}`
       : null;
 
     const [result] = await db.query(
       "INSERT INTO testimonials (patient_name, message, photo_url, rating, status) VALUES (?, ?, ?, ?, ?)",
-      [patient_name, message, photo_url, rating, status],
+      [patient_name, message, parseInt(rating, 10), status, photo_url],
     );
 
     res.status(201).json({
-      message: "✅ Testimonial saved successfully",
+      message: "Testimonial saved successfully",
       testimonial_id: result.insertId,
       photo_url,
     });
   } catch (err) {
-    console.error("❌ Error saving testimonial:", err);
-
-    res.status(500).json({
-      error: "Failed to save testimonial",
-    });
+    console.error("Error saving testimonial:", err);
+    res.status(500).json({ error: "Failed to save testimonial" });
   }
 };
 
-// ✅ Get testimonials
+// Get all testimonials
 export const getTestimonials = async (req, res) => {
   try {
     const [rows] = await db.query(
       "SELECT * FROM testimonials ORDER BY testimonial_id DESC",
     );
-
     res.status(200).json(rows);
   } catch (err) {
-    console.error("❌ Error fetching testimonials:", err);
-
-    res.status(500).json({
-      error: "Failed to fetch testimonials",
-    });
+    console.error("Error fetching testimonials:", err);
+    res.status(500).json({ error: "Failed to fetch testimonials" });
   }
 };
 
-// ✅ Delete testimonial
+// Delete testimonial
 export const deleteTestimonial = async (req, res) => {
   try {
     const { id } = req.params;
-
     const [rows] = await db.query(
       "SELECT photo_url FROM testimonials WHERE testimonial_id = ?",
       [id],
     );
 
-    if (rows.length === 0) {
-      return res.status(404).json({
-        error: "Testimonial not found.",
-      });
-    }
+    if (rows.length === 0)
+      return res.status(404).json({ error: "Testimonial not found." });
 
-    // delete image file if exists
     const photoUrl = rows[0].photo_url;
-
     if (photoUrl) {
       const filePath = path.resolve(`.${photoUrl}`);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
     await db.query("DELETE FROM testimonials WHERE testimonial_id = ?", [id]);
-
-    res.json({
-      message: "✅ Testimonial deleted successfully",
-    });
+    res.json({ message: "Testimonial deleted successfully" });
   } catch (err) {
-    console.error("❌ Error deleting testimonial:", err);
+    console.error("Error deleting testimonial:", err);
+    res.status(500).json({ error: "Failed to delete testimonial." });
+  }
+};
 
-    res.status(500).json({
-      error: "Failed to delete testimonial",
-    });
+// Update testimonial
+export const updateTestimonial = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { patient_name, message, rating, status } = req.body;
+
+    const photo_url = req.file
+      ? `/uploads/testimonials/${req.file.filename}`
+      : null;
+
+    const [existing] = await db.query(
+      "SELECT photo_url FROM testimonials WHERE testimonial_id = ?",
+      [id],
+    );
+
+    if (existing.length === 0)
+      return res.status(404).json({ error: "Testimonial not found." });
+
+    // Delete old photo if new one is uploaded
+    if (photo_url && existing[0].photo_url) {
+      const filePath = path.resolve(`.${existing[0].photo_url}`);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    await db.query(
+      `UPDATE testimonials 
+       SET patient_name = ?, message = ?, rating = ?, status = ?, photo_url = COALESCE(?, photo_url) 
+       WHERE testimonial_id = ?`,
+      [patient_name, message, parseInt(rating, 10), status, photo_url, id],
+    );
+
+    res.json({ message: "Testimonial updated successfully" });
+  } catch (err) {
+    console.error("Error updating testimonial:", err);
+    res.status(500).json({ error: "Failed to update testimonial." });
   }
 };
