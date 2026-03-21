@@ -22,31 +22,70 @@ const storage = multer.diskStorage({
 export const upload = multer({ storage });
 
 // Add testimonial
+// export const addTestimonial = async (req, res) => {
+//   try {
+//     const { patient_name, message, rating, status } = req.body;
+
+//     if (!patient_name || !message || !rating || !status) {
+//       return res.status(400).json({ error: "All fields are required." });
+//     }
+
+//     const photo_url = req.file
+//       ? `/uploads/testimonials/${req.file.filename}`
+//       : null;
+
+//     const [result] = await db.query(
+//       "INSERT INTO testimonials (patient_name, message, photo_url, rating, status) VALUES (?, ?, ?, ?, ?)",
+//       [patient_name, message, parseInt(rating, 10), status, photo_url],
+//     );
+
+//     res.status(201).json({
+//       message: "Testimonial saved successfully",
+//       testimonial_id: result.insertId,
+//       photo_url,
+//     });
+//   } catch (err) {
+//     console.error("Error saving testimonial:", err);
+//     res.status(500).json({ error: "Failed to save testimonial" });
+//   }
+// };
+
 export const addTestimonial = async (req, res) => {
   try {
+    console.log("🟢 BODY:", req.body);
+    console.log("🟢 FILE:", req.file);
+
     const { patient_name, message, rating, status } = req.body;
 
     if (!patient_name || !message || !rating || !status) {
-      return res.status(400).json({ error: "All fields are required." });
+      return res.status(400).json({
+        error: "All fields are required",
+      });
     }
 
-    const photo_url = req.file
-      ? `/uploads/testimonials/${req.file.filename}`
-      : null;
+    // ✅ safe file handling
+    let photo_url = null;
+
+    if (req.file) {
+      photo_url = `/uploads/testimonials/${req.file.filename}`;
+    }
 
     const [result] = await db.query(
       "INSERT INTO testimonials (patient_name, message, photo_url, rating, status) VALUES (?, ?, ?, ?, ?)",
-      [patient_name, message, parseInt(rating, 10), status, photo_url],
+      [patient_name, message, photo_url, rating, status],
     );
 
     res.status(201).json({
-      message: "Testimonial saved successfully",
+      message: "✅ Saved successfully",
       testimonial_id: result.insertId,
       photo_url,
     });
   } catch (err) {
-    console.error("Error saving testimonial:", err);
-    res.status(500).json({ error: "Failed to save testimonial" });
+    console.error("❌ FULL ERROR:", err);
+
+    res.status(500).json({
+      error: err.message, // 👈 IMPORTANT (so you SEE real error)
+    });
   }
 };
 
