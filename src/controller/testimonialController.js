@@ -217,8 +217,8 @@ export const addTestimonial = async (req, res) => {
     }
 
     // ✅ Normalize status (FIX)
-    const normalizedStatus =
-      status?.toLowerCase() === "approved" ? "Approved" : "Pending";
+    // const normalizedStatus =
+    //   status?.toLowerCase() === "approved" ? "Approved" : "Pending";
 
     // ✅ File handling
     let photo_url = null;
@@ -227,14 +227,8 @@ export const addTestimonial = async (req, res) => {
     }
 
     const [result] = await db.query(
-      "INSERT INTO testimonials (patient_name, message, photo_url, rating, status) VALUES (?, ?, ?, ?, ?)",
-      [
-        patient_name,
-        message,
-        photo_url,
-        parseInt(rating, 10),
-        normalizedStatus,
-      ],
+      "INSERT INTO testimonials (patient_name, message, photo_url, rating ) VALUES (?, ?, ?, ?)",
+      [patient_name, message, photo_url, parseInt(rating, 10)],
     );
 
     res.status(201).json({
