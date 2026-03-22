@@ -301,8 +301,8 @@ export const updateTestimonial = async (req, res) => {
     const { patient_name, message, rating, status } = req.body;
 
     // ✅ Normalize status (FIX)
-    const normalizedStatus =
-      status?.toLowerCase() === "approved" ? "Approved" : "Pending";
+    // const normalizedStatus =
+    //   status?.toLowerCase() === "approved" ? "Approved" : "Pending";
 
     const photo_url = req.file
       ? `/uploads/testimonials/${req.file.filename}`
@@ -324,16 +324,9 @@ export const updateTestimonial = async (req, res) => {
 
     await db.query(
       `UPDATE testimonials 
-       SET patient_name = ?, message = ?, rating = ?, status = ?, photo_url = COALESCE(?, photo_url) 
+       SET patient_name = ?, message = ?, rating = ?, photo_url = COALESCE(?, photo_url) 
        WHERE testimonial_id = ?`,
-      [
-        patient_name,
-        message,
-        parseInt(rating, 10),
-        normalizedStatus,
-        photo_url,
-        id,
-      ],
+      [patient_name, message, parseInt(rating, 10), photo_url, id],
     );
 
     res.json({ message: "Testimonial updated successfully" });

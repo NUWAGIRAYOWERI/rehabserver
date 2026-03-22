@@ -54,7 +54,11 @@ app.use(express.urlencoded({ extended: true }));
 // ✅ Serve static uploaded images
 // app.use("/uploads", express.static(path.join(__dirname, "../..", "uploads")));
 
-app.use("/uploads", express.static(path.resolve("uploads")));
+// app.use("/uploads", express.static(path.resolve("uploads")));
+
+const uploadsPath = path.join(__dirname, "uploads");
+
+app.use("/uploads", express.static(uploadsPath));
 
 // ✅ API Routes
 app.use("/admin", adminRoutes);
